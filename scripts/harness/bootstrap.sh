@@ -5,11 +5,11 @@
 #   bash scripts/harness/bootstrap.sh [options]
 #
 # Steps (in this order):
-#   1. Prerequisites check (node, pnpm, git, claude, gh). Docker is NOT needed.
+#   1. Prerequisites check (node, pnpm, git, claude, gh). The Docker CLI is needed only to reach the development VM.
 #   2. Recommended integrations BEFORE the project setup:
 #        Claude Code plugins (project scope), vendored agent skills, MCP servers (.mcp.json)
 #   3. Project setup: Next.js 16 app scaffold, pnpm workspace (workers/*, packages/*), dependencies, test configs, package scripts
-#   4. .env.local for the DEVELOPMENT Supabase project (no local database, no Docker)
+#   4. .env.local for the DEVELOPMENT Supabase project (no local database)
 #   5. Harness doctor
 #
 # Options:
@@ -180,7 +180,7 @@ if [ "$SKIP_SCAFFOLD" = 0 ]; then
 fi
 
 # ---------------------------------------------------------------- 4. Local environment (development project)
-say "4/5 .env.local for the development Supabase project (no local database, no Docker)"
+say "4/5 .env.local for the development Supabase project (no local database)"
 [ -f .env.local ] || { [ "$DRY_RUN" = 1 ] || node scripts/harness/lib/scaffold.mjs env-local; }
 info "Fill .env.local with the DEVELOPMENT project URL and publishable key (Supabase dashboard > Project Settings > API). Add the development API keys listed in .env.example. Production keys live only in the production hosts (Fly secrets, the web host once chosen). Workers: create the Fly apps as GETTING-STARTED.md section 3.3 says."
 

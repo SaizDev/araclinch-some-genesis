@@ -30,7 +30,7 @@ updated: {{date}}
 <!-- Seeded users per role, factories, cleanup strategy. No production data. -->
 
 ## 5. Environments
-- Database: rolled-back test runs on the hosted project (no local database, no Docker). Tests create their own rows and assert only on them.
+- Database: rolled-back test runs on the hosted project (no local database). Tests create their own rows and assert only on them.
 - App and e2e: `pnpm dev` with `.env.local` pointing at the hosted project (or `pnpm build && pnpm start`); e2e data uses a recognizable prefix and is deleted in teardown.
 - CI: `.github/workflows/ci.yml`
 

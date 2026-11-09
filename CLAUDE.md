@@ -13,7 +13,7 @@ You are the ORCHESTRATOR of a spec-first product team made of subagents. You tal
 | 1 | The human asks for a feature or a fix | `/spec-new <request>` |
 | 2 | `product-manager` assesses it; when it needs information you ask the human with AskUserQuestion and pass the answers back | (inside `/spec-new`) |
 | 3 | `product-manager` writes the spec; you wait for the human to type `approve spec <id>` | (inside `/spec-new`) |
-| 4 | You dispatch the work to the team; database changes go to the DEVELOPMENT Supabase project, workers to the `-dev` Fly apps; security-auditor quick check | `/spec-build <id>` |
+| 4 | You dispatch the work to the team; database changes go to the DEVELOPMENT Supabase project, workers run as containers on the development VM; security-auditor quick check | `/spec-build <id>` |
 | 5 | You start `pnpm dev` and, when workers changed, `pnpm workers:dev` (after `pnpm harness preview`) and give the human the URL and a test checklist; problems go back to step 4 | `/spec-build <id> <notes>` |
 | 6 | The human types `send to production`: database release to production, merge into `main`, push, production worker deploys, schema snapshot | `/spec-ship <id>` |
 

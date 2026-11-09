@@ -48,9 +48,12 @@ const SCRIPTS = {
   'spec:approve': 'node .claude/harness/harness.mjs spec approve',
   harness: 'node .claude/harness/harness.mjs',
   verify: 'pnpm lint && pnpm typecheck && pnpm test && pnpm -r --filter "./workers/*" --filter "./packages/*" --if-present typecheck && pnpm -r --filter "./workers/*" --filter "./packages/*" --if-present test && pnpm build',
-  // Runs the dev script of every worker against the development project (.env.local). Each worker
-  // package defines its own "dev" script; platform-engineer owns them.
-  'workers:dev': 'pnpm -r --parallel --filter "./workers/*" --if-present dev',
+  // The workers run as containers on the development VM (Docker context in DOCKER_CONTEXT),
+  // against the development Supabase project. compose.dev.yaml belongs to the platform-engineer.
+  'workers:dev': 'docker compose -f compose.dev.yaml up --build --remove-orphans',
+  'workers:down': 'docker compose -f compose.dev.yaml down --remove-orphans',
+  'workers:logs': 'docker compose -f compose.dev.yaml logs -f --tail=200',
+  'workers:ps': 'docker compose -f compose.dev.yaml ps',
 };
 
 const WORKSPACE_PACKAGES = "packages:\n  - 'workers/*'\n  - 'packages/*'\n";

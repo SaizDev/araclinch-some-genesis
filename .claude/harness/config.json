@@ -33,6 +33,11 @@
       },
       "devSuffix": "-dev"
     },
+    "docker": {
+      "context": "araclinch-vm",
+      "host": "development VM (Debian), reached over SSH",
+      "composeFile": "compose.dev.yaml"
+    },
     "timezone": "Europe/Madrid"
   },
   "policies": {

@@ -44,7 +44,7 @@ Then `node .claude/harness/harness.mjs spec set-status <id> implemented`.
 
 ## 5. Hand over for testing
 1. `node .claude/harness/harness.mjs preview`. If it is not OK, tell the human exactly what to fix in `.env.local` and stop.
-2. Start `pnpm dev` and, when the spec touches any worker, `pnpm workers:dev` in the background (run_in_background); wait until both are ready. Both use the development Supabase project from `.env.local`; paid providers run for real, so tell the human roughly which calls a test triggers.
+2. Start `pnpm dev` and, when the spec touches any worker, `pnpm workers:dev` in the background (run_in_background); wait until both are ready. `pnpm workers:dev` builds and runs the worker containers on the development VM; if preview noted a missing Docker CLI or context, or the build cannot reach the VM, tell the human (GETTING-STARTED.md, section 3.4) and test the web app alone. Both use the development Supabase project from `.env.local`; paid providers run for real, so tell the human roughly which calls a test triggers.
 3. Commit the work on the branch (Conventional Commits with the spec id).
 4. Tell the human: the URL (http://localhost:3000), a short checklist (one line per AC: where to click, what to expect), test users or data created in the development project, the jobs to watch (queue and status), and the two possible answers:
    - what is wrong: you run `/spec-build <id> <their notes>` again;

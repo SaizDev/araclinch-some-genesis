@@ -13,6 +13,7 @@ The Instagram content system for one brand: generate content from its library, d
 |---|---|
 | Web app (`web`, the only public app) | Next.js 16 (App Router, React 19, TypeScript strict), Tailwind CSS v4, shadcn/ui. Hosting not decided yet |
 | Workers | Six Node 22 packages on Fly.io (`fra`), shared base image with Chromium and FFmpeg; `worker-media` adds Python and WhisperX |
+| Development containers | Docker on a Debian VM, reached from the Mac through the Docker context `araclinch-vm`; `compose.dev.yaml` runs the workers against the development project |
 | Queue | pg-boss in the Supabase Postgres database; `pg_cron` for due posts |
 | Database and files | Supabase Postgres with RLS, Storage (one private bucket per library), Vault for Meta tokens; a development project and a production project |
 | Auth | Supabase Auth, email with MFA, roles owner and editor |
@@ -28,12 +29,13 @@ The Instagram content system for one brand: generate content from its library, d
 | Task | Command |
 |---|---|
 | Web app (against the development project in `.env.local`) | `pnpm harness preview`, then `pnpm dev` |
-| All workers locally (development project) | `pnpm workers:dev` |
+| All workers as containers on the development VM | `pnpm workers:dev` (`workers:logs`, `workers:ps`, `workers:down`) |
 | One worker's tests | `pnpm --filter @app/worker-<name> test` |
 | Database status and tests | `pnpm harness db status`, `pnpm harness db test` |
 | Typecheck, lint, tests | `pnpm typecheck`, `pnpm lint`, `pnpm test` |
 | Everything before production | `pnpm verify` |
-| Development worker deploy | `fly deploy --remote-only --app <worker>-dev --config workers/<worker>/fly.toml` |
+| Development worker deploy (optional) | `fly deploy --remote-only --app <worker>-dev --config workers/<worker>/fly.toml` |
+| Image build check on Fly, no release | `fly deploy --build-only --remote-only --app <worker>-dev --config workers/<worker>/fly.toml` |
 
 ## Repository layout
 
@@ -61,6 +63,7 @@ supabase/
   changes/             One SQL change script per spec, applied to development, released to production
   tests/database/      pgTAP tests
 migrations/schema.sql  Production schema snapshot (no data), saved after every release
+compose.dev.yaml       The workers on the development VM (platform-engineer)
 ```
 
 ## Architecture rules
@@ -81,7 +84,7 @@ migrations/schema.sql  Production schema snapshot (no data), saved after every r
 - No migration history. Each spec that changes the schema has one change script, `supabase/changes/<id>-<slug>.sql`, applied to development as one transaction and later released to production as the same transaction.
 - After each release, `migrations/schema.sql` is refreshed from production: the SQL that recreates the whole schema on an empty project. No data.
 - Every table in `public` has RLS and explicit policies. pgTAP tests cover RLS per role, on rows the tests create, in runs that are always rolled back.
-- Docker, `supabase start`, `supabase test db` and local Postgres are not used (hooks block them).
+- `supabase start`, `supabase test db` and local Postgres (also in a container) are not used (hooks block them). Docker is used only to run the workers on the development VM.
 
 ## Testing
 

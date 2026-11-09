@@ -189,7 +189,7 @@ ${disabled.length ? `## Disabled roles\n\n${disabled.join('\n')}\n` : ''}
 | worker-media (export ZIP import, FFmpeg, WhisperX, analysis) and worker-render (Playwright templates, HyperFrames, captions, audio) | \`media-engineer\` |
 | worker-agent (Claude Agent SDK, Instagram skills, ContentSpec), video and voice provider adapters | \`ai-agent-engineer\` |
 | worker-discovery (Apify, YouTube Data API, yt-dlp), worker-publish (Instagram Graph API, Meta ads), worker-analytics | \`integrations-engineer\` |
-| Fly.io apps, worker base image, pg-boss setup, local worker runs, secrets layout | \`platform-engineer\` |
+| Dockerfiles, worker base image, \`compose.dev.yaml\` on the development VM, Fly.io apps, pg-boss setup, secrets layout | \`platform-engineer\` |
 | Security review | ${owner('security-auditor')} |
 | Environments, runbooks | \`platform-engineer\` |
 | README, guides, changelog | you |

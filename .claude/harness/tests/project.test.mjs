@@ -271,3 +271,87 @@ describe('preview', () => {
     assert.match(cli(root, ['preview']).out, /DATABASE_URL is not set/);
   });
 });
+
+describe('docker on the development VM', () => {
+  let root;
+  before(() => {
+    root = makeProject();
+    openSpec(root, 'worker-images');
+  });
+  const dk = (cmd, agent = 'platform-engineer') => decision(preBash(root, cmd, agent));
+  test('the project points Docker at the VM context', () => {
+    const settings = JSON.parse(fs.readFileSync(path.join(PROJECT, '.claude/settings.json'), 'utf8'));
+    assert.equal(settings.env.DOCKER_CONTEXT, 'araclinch-vm');
+    assert.ok(!settings.permissions.deny.includes('Bash(docker *)'), 'docker is not denied wholesale');
+    const cfg = JSON.parse(fs.readFileSync(path.join(PROJECT, '.claude/harness/config.json'), 'utf8'));
+    assert.equal(cfg.stack.docker.context, 'araclinch-vm');
+  });
+  test('builds, compose runs and logs are allowed', () => {
+    for (const c of [
+      'docker compose -f compose.dev.yaml up --build --remove-orphans',
+      'docker compose -f compose.dev.yaml build worker-media',
+      'docker compose -f compose.dev.yaml logs -f --tail=200 worker-render',
+      'docker compose -f compose.dev.yaml config --quiet',
+      'docker build -f workers/base/Dockerfile -t araclinch/base:dev .',
+      'docker ps',
+      'docker --context araclinch-vm ps',
+      'docker compose exec worker-render sh -c "ffmpeg -version"',
+      'docker run --rm -p 127.0.0.1:9229:9229 araclinch/worker-media:dev node --version',
+    ]) assert.equal(dk(c), 'allow', c);
+  });
+  test('other hosts, contexts, registries and logins are blocked', () => {
+    for (const c of [
+      'docker --context default ps',
+      'docker -H ssh://other ps',
+      'DOCKER_HOST=tcp://1.2.3.4:2375 docker ps',
+      'docker context use default',
+      'docker context create other --docker host=ssh://x',
+      'docker login ghcr.io',
+      'docker push araclinch/worker-media:dev',
+      'docker image push araclinch/worker-media:dev',
+      'docker buildx build --push -t x .',
+      'docker compose push',
+    ]) assert.equal(dk(c), 'deny', c);
+    assert.equal(dk('docker context ls'), 'allow');
+  });
+  test('no host escapes, public ports or local databases', () => {
+    for (const c of [
+      'docker run --privileged araclinch/worker-media:dev',
+      'docker run --network host araclinch/worker-media:dev',
+      'docker run -v /:/host alpine',
+      'docker run -v /var/run/docker.sock:/var/run/docker.sock alpine',
+      'docker run -p 8080:8080 araclinch/worker-media:dev',
+      'docker run -P araclinch/worker-media:dev',
+      'docker run -d postgres:17',
+      'docker compose run --privileged worker-media',
+    ]) assert.equal(dk(c), 'deny', c);
+  });
+  test('container environments are never printed', () => {
+    for (const c of ['docker inspect worker-media', 'docker container inspect x', 'docker compose config', 'docker compose exec worker-agent printenv', 'docker exec x env']) {
+      assert.equal(dk(c), 'deny', c);
+    }
+  });
+  test('pruning asks first', () => {
+    assert.equal(dk('docker system prune -af'), 'ask');
+    assert.equal(dk('docker compose -f compose.dev.yaml down -v'), 'ask');
+  });
+  test('compose files are checked when written', () => {
+    const write = (body) => preWrite(root, 'compose.dev.yaml', body, 'platform-engineer');
+    const ok = 'services:\n  worker-media:\n    build:\n      context: .\n      dockerfile: workers/media/Dockerfile\n    env_file: .env.local\n    restart: unless-stopped\n    volumes:\n      - media-tmp:/tmp/jobs\nvolumes:\n  media-tmp: {}\n';
+    assert.equal(decision(write(ok)), 'allow', reason(write(ok)));
+    assert.equal(decision(write('services:\n  a:\n    image: x\n    privileged: true\n')), 'deny');
+    assert.equal(decision(write('services:\n  a:\n    image: x\n    network_mode: host\n')), 'deny');
+    assert.equal(decision(write('services:\n  a:\n    image: x\n    volumes:\n      - ./workers/media:/app\n')), 'deny');
+    assert.equal(decision(write('services:\n  a:\n    image: x\n    ports:\n      - "3000:3000"\n')), 'deny');
+    assert.equal(decision(write('services:\n  a:\n    image: x\n    ports:\n      - "127.0.0.1:9229:9229"\n')), 'allow');
+    assert.equal(decision(write('services:\n  db:\n    image: postgres:17\n')), 'deny');
+  });
+  test('images and the compose file belong to the platform-engineer', () => {
+    assert.equal(decision(preWrite(root, 'compose.dev.yaml', 'services: {}\n', 'media-engineer')), 'deny');
+    assert.equal(decision(preWrite(root, 'workers/media/.dockerignore', 'node_modules\n', 'platform-engineer')), 'allow');
+    assert.equal(decision(preWrite(root, 'workers/media/.dockerignore', 'node_modules\n', 'media-engineer')), 'deny');
+  });
+  test('the fly build-only check is allowed on development apps', () => {
+    assert.equal(dk('fly deploy --build-only --remote-only --app worker-media-dev --config workers/media/fly.toml'), 'allow');
+  });
+});

@@ -23,7 +23,7 @@ Database tests (pgTAP files in `supabase/tests/database/`) run on the hosted pro
 1. `pnpm harness db test --after <latest applied migration>` builds one PL/pgSQL `DO` block containing the migrations the project does not have yet and every test file. Each statement runs through `EXECUTE`, which cannot commit; each test file runs in its own savepoint; the block ends by raising an exception that carries the TAP results. Postgres therefore rolls back everything: pending migrations, test rows, pgTAP itself, on success and on failure.
 2. The run is stored under `.claude/harness/state/db-tests/`. A second, read-write MCP server (`supabase-test`) accepts only a reference to a stored run: the `mcp-guard` hook swaps in the stored text and denies every other call. The everyday `supabase` server stays read-only.
 3. The builder refuses constructs that could act outside the transaction (`dblink`, `pg_background`, `COPY ... PROGRAM`, `ALTER SYSTEM`, `pg_net`, `http`). Runs set `lock_timeout` 5 s and `statement_timeout` 120 s.
-4. Docker, `supabase start`, `supabase test db` and local Postgres are blocked by the bash guard. CI keeps its own Supabase stack on GitHub's machines as an extra safety net.
+4. (Docker is now allowed for the workers on the development VM, ADR 0009; a Postgres container is still not used.) `supabase start`, `supabase test db` and local Postgres are blocked by the bash guard. CI keeps its own Supabase stack on GitHub's machines as an extra safety net.
 
 ## Consequences
 - Positive: tests exercise the real platform; no local setup; no residue in the project.

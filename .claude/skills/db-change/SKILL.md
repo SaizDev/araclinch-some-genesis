@@ -10,7 +10,7 @@ Arguments: $ARGUMENTS
 
 !`node .claude/harness/harness.mjs db status 2>&1 || true`
 
-Rules: `.claude/rules/20-database.md`. No local database, no Docker, no migration history.
+Rules: `.claude/rules/20-database.md`. No local database, no Postgres container, no migration history.
 
 ## Steps
 1. The spec gate must be open (`node .claude/harness/harness.mjs spec status <id>`). No spec, no schema change.

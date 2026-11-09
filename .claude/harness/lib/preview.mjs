@@ -2,6 +2,7 @@
 // Supabase project. This check reads .env.local only to compare the project ref of
 // NEXT_PUBLIC_SUPABASE_URL with the configured refs; it never prints keys or values.
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { readText } from './util.mjs';
 
 function envValue(text, key) {
@@ -54,6 +55,17 @@ export function previewCheck(root, h) {
     }
   } else {
     lines.push('Note: DATABASE_URL is not set in .env.local, so pnpm workers:dev cannot reach the queue. Ask the human to add the development connection string if the test needs workers.');
+  }
+  // Workers run on the development VM through a Docker context. Only the local context entry is
+  // checked (no connection to the VM, so no SSH prompt); a missing one is a note, not a stop.
+  const dockerContext = h.config.stack?.docker?.context;
+  if (dockerContext) {
+    const res = spawnSync('docker', ['context', 'inspect', dockerContext], { encoding: 'utf8', timeout: 5000 });
+    if (res.error?.code === 'ENOENT') {
+      lines.push('Note: the Docker CLI is not installed on this machine, so pnpm workers:dev cannot reach the development VM (GETTING-STARTED.md, section 3.4).');
+    } else if (res.status !== 0) {
+      lines.push(`Note: the Docker context "${dockerContext}" does not exist on this machine, so pnpm workers:dev cannot reach the development VM. The human creates it (GETTING-STARTED.md, section 3.4).`);
+    }
   }
   if (ok) {
     lines.push(`OK: .env.local points to the development project${ref ? ` (${ref})` : ''}.`);

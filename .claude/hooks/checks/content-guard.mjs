@@ -108,6 +108,28 @@ export async function run(ctx) {
     }
   }
 
+  // Compose files run on the development VM through a remote Docker context: no host escapes, no
+  // public ports, no bind mounts (a host path would be resolved on the VM, not on this machine).
+  if (/^(?:.*\/)?(?:docker-)?compose(?:\.[\w-]+)?\.ya?ml$/.test(rel)) {
+    const yml = projectedContent(ctx.root, ctx.tool, ctx.toolInput) ?? '';
+    const rules = [
+      [/^\s*privileged:\s*true\b/m, 'privileged: true'],
+      [/^\s*(network_mode|pid|ipc|userns_mode):\s*["']?host\b/m, 'host namespaces (network_mode, pid, ipc or userns_mode: host)'],
+      [/^\s*(cap_add|devices):/m, 'cap_add or devices'],
+      [/docker\.sock/, 'the Docker socket'],
+      [/^\s*-\s*["']?(?:\.{1,2}\/|\/|~|\$\{?\w+\}?\/)[^:\s"']*:/m, 'bind mounts of host paths (use named volumes; build context is sent with the build)'],
+      [/^\s*type:\s*bind\b/m, 'bind mounts of host paths'],
+      [/^\s*image:\s*["']?(?:[\w.-]+\/)*(postgres|postgis|supabase\/postgres|pgvector)(:|["'\s]|$)/m, 'a Postgres container (there is no local database; workers use the development Supabase project)'],
+    ];
+    for (const [rx, label] of rules) if (rx.test(yml)) problems.push(`${rel} uses ${label}. Containers run on the development VM, which is reachable from the internet.`);
+    const portLines = [...yml.matchAll(/^\s*-\s*["']?(\d[\d.:\-]*:\d[\d\-]*(?:\/\w+)?)["']?\s*$/gm)].map((m) => m[1]);
+    const inPorts = /^\s*ports:/m.test(yml);
+    const published = /^\s*published:\s*["']?\d/m.test(yml) && !/^\s*host_ip:\s*["']?127\.0\.0\.1/m.test(yml);
+    if (inPorts && (portLines.some((v) => !v.startsWith('127.0.0.1:')) || published)) {
+      problems.push(`${rel} publishes a port on every interface of the development VM. Bind it to 127.0.0.1 ("127.0.0.1:<port>:<port>") or publish nothing: workers need no ports.`);
+    }
+  }
+
   if (problems.length) return { decision: 'deny', reason: problems.join(' ') };
   if (warnings.length) return { context: `[harness warning] ${warnings.join(' ')}` };
   return null;

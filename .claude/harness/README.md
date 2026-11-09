@@ -83,7 +83,7 @@ Example: `HARNESS_SPEC_GATE=warn claude`. Prefer fixing the process (create a ch
 
 ## Database: two projects, change scripts, snapshot
 
-No local database, no Docker, no migration history (decision record: `docs/architecture/adr/0007-dev-and-prod-projects-change-scripts.md`).
+No local database and no migration history; Docker only for the workers on the development VM (ADR 0009) (decision record: `docs/architecture/adr/0007-dev-and-prod-projects-change-scripts.md`).
 
 - `pnpm harness supabase dev <ref>` and `pnpm harness supabase prod <ref>` configure the two projects and the three MCP servers.
 - One change script per spec: `supabase/changes/<id>-<slug>.sql`. `-- devharness:apply <id>` on `supabase` applies it to development as one `DO` block (one transaction).

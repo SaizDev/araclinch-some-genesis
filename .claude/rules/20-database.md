@@ -8,7 +8,7 @@ paths:
 
 # Database rules
 
-Two Supabase projects, no local database, no Docker, no migration history:
+Two Supabase projects, no local database (no Postgres container either), no migration history:
 
 | Project | MCP server | Agents may |
 |---|---|---|

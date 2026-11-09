@@ -202,6 +202,88 @@ function checkFly(args, ctx) {
   return productionGate(ctx, `fly ${a}${b ? ` ${b}` : ''} on ${app}`);
 }
 
+// Docker runs only on the development VM, reached from this machine through one Docker context
+// (stack.docker.context, set as DOCKER_CONTEXT in .claude/settings.json). Docker access on a host is
+// root access and the containers receive the development secrets, so the guard keeps commands on
+// that context, blocks host escapes and public ports, and blocks commands that print container
+// environments. Registries, logins and contexts are human-only. Production never runs on Docker.
+const DOCKER_SUBS = new Set(['compose', 'build', 'buildx', 'run', 'create', 'exec', 'ps', 'logs', 'images', 'image', 'container', 'inspect', 'login', 'logout', 'push', 'pull', 'tag', 'context', 'system', 'volume', 'network', 'stop', 'start', 'restart', 'rm', 'rmi', 'kill', 'stats', 'top', 'cp', 'info', 'version', 'swarm', 'plugin', 'trust', 'secret', 'service', 'stack', 'save', 'load', 'export', 'import', 'commit', 'update', 'events', 'port', 'diff', 'wait', 'attach']);
+const COMPOSE_SUBS = new Set(['up', 'down', 'build', 'run', 'exec', 'ps', 'logs', 'config', 'pull', 'push', 'restart', 'stop', 'start', 'rm', 'kill', 'create', 'images', 'top', 'ls', 'version', 'cp', 'watch', 'events', 'port', 'pause', 'unpause', 'wait', 'attach', 'stats']);
+const ENV_DUMP = /(^|\s)(printenv|env|export|set)(\s|$)|\/proc\/[^\s]*environ|\$\{?[A-Z_]*(SECRET|TOKEN|KEY|PASSWORD|DATABASE_URL)/;
+
+function firstOf(args, subs) {
+  const i = args.findIndex((a) => subs.has(a));
+  return i < 0 ? { sub: null, rest: [], before: args } : { sub: args[i], rest: args.slice(i + 1), before: args.slice(0, i) };
+}
+
+function runFlagsProblem(args) {
+  const joined = ` ${args.join(' ')} `;
+  if (/\s--privileged(\s|=)/.test(joined)) return '--privileged';
+  if (/\s--cap-add[\s=]/.test(joined)) return '--cap-add';
+  if (/\s--device[\s=]/.test(joined)) return '--device';
+  if (/\s--(pid|ipc|uts|userns)[\s=]host\s/.test(joined)) return 'host namespaces';
+  if (/\s--(network|net)[\s=]host\s/.test(joined)) return '--network host';
+  if (/docker\.sock/.test(joined)) return 'the Docker socket';
+  const values = [...flagValues(args, '-v', '--volume'), ...flagValues(args, '', '--mount')];
+  if (values.some((v) => /^(\/|~|\.|\$)/.test(v) || /(^|,)(type=bind|source=\/|src=\/)/.test(v))) return 'a bind mount of a host path';
+  const ports = flagValues(args, '-p', '--publish');
+  if (ports.some((v) => !/^127\.0\.0\.1:/.test(v)) || /\s(-P|--publish-all)\s/.test(joined)) return 'a port that is not bound to 127.0.0.1';
+  return null;
+}
+
+function checkDocker(name, args, seg, ctx) {
+  const context = ctx.h.config.stack?.docker?.context || 'araclinch-vm';
+  const raw = seg.join(' ');
+  if (/\bDOCKER_(HOST|CONTEXT|CONFIG|TLS[A-Z_]*)=/.test(raw)) return deny('Docker commands run only on the development VM context; changing DOCKER_HOST or DOCKER_CONTEXT is blocked.');
+  const isCompose = name === 'docker-compose';
+  const top = isCompose ? { sub: 'compose', rest: args, before: [] } : firstOf(args, DOCKER_SUBS);
+  const { sub, rest, before } = top;
+  // Global flags come before the subcommand; later -c or -H belong to the command run in a container.
+  const ctxFlag = flagValues(before, '-c', '--context')[0];
+  if (ctxFlag && ctxFlag !== context) return deny(`Docker commands run only on the "${context}" context (the development VM).`);
+  if (flagValues(before, '-H', '--host').length || before.some((a) => a === '--config' || a.startsWith('--config='))) {
+    return deny('Docker commands run only on the development VM context; --host and --config are blocked.');
+  }
+  if (!sub) return null;
+  if (['login', 'logout', 'push', 'trust', 'swarm', 'secret', 'service', 'stack', 'plugin'].includes(sub)) {
+    return deny(`docker ${sub} is human-only: registries, credentials and cluster setup are not part of development.`);
+  }
+  if (sub === 'context') {
+    const [c] = positional(rest);
+    return ['ls', 'list', 'show', 'inspect'].includes(c) ? null : deny(`docker context ${c ?? ''} changes where Docker runs and is human-only.`);
+  }
+  if (sub === 'image' && positional(rest)[0] === 'push') return deny('Pushing images is human-only; production images are built by Fly.');
+  if ((sub === 'build' || sub === 'buildx') && rest.includes('--push')) return deny('Pushing images is human-only; production images are built by Fly.');
+  if (sub === 'inspect' || (sub === 'container' && positional(rest)[0] === 'inspect')) {
+    return deny('docker inspect prints container environments, which hold the development secrets. Use docker ps, docker logs or docker compose ps.');
+  }
+  if (['run', 'create'].includes(sub) || (sub === 'container' && ['run', 'create'].includes(positional(rest)[0]))) {
+    if (rest.some((a) => /^(?:[\w.-]+\/)*(postgres|postgis|supabase\/postgres|pgvector\/pgvector)(:|@|$)/.test(a))) {
+      return deny('No local database, also not in a container: workers use the development Supabase project.');
+    }
+    const problem = runFlagsProblem(rest);
+    if (problem) return deny(`Containers on the development VM may not use ${problem}. Workers need none of it; the VM is reachable from the internet.`);
+  }
+  if (sub === 'exec' && ENV_DUMP.test(rest.join(' '))) return deny('Printing a container environment is blocked: it holds the development secrets.');
+  if ((sub === 'system' && positional(rest)[0] === 'prune') || (sub === 'volume' && ['prune', 'rm'].includes(positional(rest)[0]))) {
+    return ask(`docker ${sub} ${positional(rest)[0]} deletes data on the development VM.`);
+  }
+  if (sub === 'compose') {
+    const c = firstOf(rest, COMPOSE_SUBS);
+    if (c.sub === 'push') return deny('Pushing images is human-only; production images are built by Fly.');
+    if (c.sub === 'config' && !c.rest.some((a) => ['-q', '--quiet', '--services', '--volumes', '--profiles', '--images', '--networks'].includes(a))) {
+      return deny('docker compose config prints the resolved environment, which holds the development secrets. Use `docker compose config --quiet` to validate or `--services` to list.');
+    }
+    if (c.sub === 'run') {
+      const problem = runFlagsProblem(c.rest);
+      if (problem) return deny(`Containers on the development VM may not use ${problem}.`);
+    }
+    if ((c.sub === 'exec' || c.sub === 'run') && ENV_DUMP.test(c.rest.join(' '))) return deny('Printing a container environment is blocked: it holds the development secrets.');
+    if (c.sub === 'down' && c.rest.some((a) => a === '-v' || a === '--volumes')) return ask('docker compose down --volumes deletes the volumes on the development VM.');
+  }
+  return null;
+}
+
 function checkGh(args, ctx) {
   const [a, b] = positional(args);
   if (a === 'auth' && b === 'token') return deny('Printing GitHub tokens is blocked.');
@@ -309,9 +391,11 @@ function analyze(ctx, cmd, results, depth) {
         add(ask('Starting a nested Claude Code process.'));
       }
     }
-    if (['docker', 'docker-compose', 'podman', 'colima', 'orbctl'].includes(first)) {
-      add(deny('Docker and local containers are not part of this project: there is no local database, and worker images build remotely with `fly deploy --remote-only --app <worker>-dev`. Run workers locally with `pnpm workers:dev`; database tests run, rolled back, on the development Supabase project (`pnpm harness db test`).'));
+    if (['podman', 'colima', 'orbctl'].includes(first)) {
+      add(deny('Local container runtimes are not used. Containers run on the development VM through the Docker context in stack.docker.context (`pnpm workers:dev`).'));
     }
+    const dk = findProgram(words, ['docker', 'docker-compose']);
+    if (dk) add(checkDocker(dk.name, dk.args, seg, ctx));
 
     const git = findProgram(words, 'git');
     if (git) add(checkGit(git.args, ctx));

@@ -1,6 +1,6 @@
 # Getting started: your first days with the harness
 
-This project was created by `devharness`. It comes with a Claude Code product team (a main session that orchestrates, plus specialist agents), one simple workflow, guards that keep everyone in their lane, two Supabase projects instead of a local database, and development and production apps on Fly.io for the workers. This file takes you from a freshly created folder to your first feature in production. Keep it; it is also the reference for later.
+This project was created by `devharness`. It comes with a Claude Code product team (a main session that orchestrates, plus specialist agents), one simple workflow, guards that keep everyone in their lane, two Supabase projects instead of a local database, a Docker VM where the workers run during development, and production apps on Fly.io for the workers. This file takes you from a freshly created folder to your first feature in production. Keep it; it is also the reference for later.
 
 Companion guides: `docs/guides/prompting-the-team.md` (how to phrase requests) and `docs/guides/working-with-the-harness.md` (the daily loop on one page).
 
@@ -44,17 +44,33 @@ The two approvals are messages on their own (`approve spec 007`, `send to produc
 
 ### 3.2 GitHub
 1. Create an empty private repository on GitHub, then: `git remote add origin <url> && git push -u origin main`.
-2. No GitHub Actions are needed.
+2. No GitHub Actions are needed. The repository is private; the Docker VM does not need a copy of it.
 
 ### 3.3 Fly.io (workers)
 1. Install `flyctl` and run `fly auth login` yourself (agents never handle Fly tokens).
 2. Create two apps per worker in region `fra`: `<worker>-dev` (agents deploy these freely) and `<worker>` (production, deployed only after `send to production`). Record them with `pnpm harness config set stack.fly.org <org>` and `pnpm harness config set stack.fly.apps.worker-media <app>` and so on.
 3. Set the secrets of each app yourself with `fly secrets set` (development keys on `-dev` apps, production keys on the others).
 
-### 3.4 Web hosting
+### 3.4 Development VM (Docker)
+Claude Code runs on your Mac. Docker commands go to the VM over SSH through a Docker context, so the workers run in the same images as on Fly. The web app runs on your Mac with `pnpm dev`.
+
+On the VM (Debian, once):
+1. A non-root user in the `docker` group; SSH with keys only (`PasswordAuthentication no`, `PermitRootLogin no`).
+2. Firewall open only for SSH (for example `ufw allow OpenSSH && ufw enable`). Never expose the Docker daemon on a TCP port. Note that Docker publishes ports past ufw, which is why the harness only allows ports bound to `127.0.0.1`.
+3. Outbound internet access (Supabase, Anthropic, Meta and the other providers).
+
+On the Mac (once):
+1. The Docker CLI and Compose without Docker Desktop: `brew install docker docker-compose docker-buildx` and follow brew's note to register the two plugins.
+2. An SSH host entry in `~/.ssh/config` (for example `Host araclinch-vm`, with `HostName`, `User` and `IdentityFile`). Load the key in the macOS keychain (`UseKeychain yes`, `AddKeysToAgent yes`) so Docker never waits for a passphrase.
+3. `docker context create araclinch-vm --docker "host=ssh://araclinch-vm"`, then check it with `docker --context araclinch-vm ps`. The project selects this context for Claude (`DOCKER_CONTEXT` in `.claude/settings.json`); if you use another name, change it there and in `stack.docker.context`.
+4. `.env.local` stays on the Mac. `compose.dev.yaml` sends its values to the containers when they start, so they live in the container settings on the VM: keep the VM to yourself.
+
+Claude may build, start, stop and read logs of containers on that context. It cannot change contexts, log in to or push to registries, run privileged containers, mount host paths or the Docker socket, publish ports beyond `127.0.0.1`, or print container environments.
+
+### 3.5 Web hosting
 Not decided yet. When you choose, run `pnpm harness config set stack.web.host <host>` and tell Claude; until then `/spec-ship` reports that the web app was not deployed.
 
-### 3.5 Claude Code
+### 3.6 Claude Code
 1. Start `claude` in the project folder. Approve the project MCP servers when asked.
 2. Run `/mcp` and sign in to `supabase`, `supabase-prod` and `supabase-release`.
 3. Run `/harness status`. If something is missing, `/harness doctor` explains it.
@@ -70,7 +86,7 @@ Every project starts with spec `000-foundation` (authentication, layout, data ac
 
 ## 5. How the database works
 
-- No local database, no Docker, no migration history.
+- No local database (no Postgres container either), no migration history.
 - Each spec that changes the schema has one change script, `supabase/changes/<id>-<slug>.sql`. Agents apply it to the **development** project as one transaction (all or nothing) and test it there. Database tests run in transactions that are always rolled back.
 - Production is read-only for agents. When you type `send to production`, the hook records the exact script you tested (a hash). The same script is then applied to production as one transaction. If it changed after your approval, the release is refused.
 - After the release, the harness reads the production catalog and saves the SQL that recreates the whole schema to `migrations/schema.sql`. To rebuild the database elsewhere: run that file on an empty project, then load data.
@@ -98,7 +114,8 @@ This project uses one profile, budget. The product-manager and solution-architec
 | "Release refused: ... changed after the human approved" | Test the new version, then type `send to production` again |
 | `pnpm harness preview` says STOP | `.env.local` points to production: switch it to the development project |
 | A Supabase server is missing | `pnpm harness supabase dev|prod <ref>`, restart Claude, `/mcp` |
-| Claude wants Docker or a local database | Nothing: hooks block it; workers build remotely on Fly |
+| Claude wants a local database or Postgres container | Nothing: hooks block it |
+| `pnpm workers:dev` cannot reach the VM | Check `docker --context araclinch-vm ps` in your terminal: SSH key loaded, VM running |
 | "fly ... targets a production app" | Test, then type `send to production` |
 | Anything else | "Run the harness doctor and explain" |
 

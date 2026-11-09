@@ -200,12 +200,18 @@
         "workers/*/fly.toml",
         "fly/**",
         "Dockerfile",
-        "*.Dockerfile"
+        "*.Dockerfile",
+        "compose*.yaml",
+        "compose*.yml",
+        "docker-compose*.yaml",
+        "docker-compose*.yml",
+        ".dockerignore",
+        "**/.dockerignore"
       ],
       "owners": [
         "platform-engineer"
       ],
-      "reason": "Fly.io apps and the shared worker base image belong to the platform-engineer."
+      "reason": "Fly.io apps, the worker images and the development compose file belong to the platform-engineer."
     },
     {
       "id": "render-templates",
@@ -433,10 +439,7 @@
         ".env.example",
         ".nvmrc",
         ".npmrc",
-        "pnpm-workspace.yaml",
-        "docker-compose*.yml",
-        "vercel.json",
-        "vercel.ts"
+        "pnpm-workspace.yaml"
       ],
       "owners": [
         "platform-engineer",

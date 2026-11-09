@@ -30,7 +30,7 @@ Hooks deny edits outside an agent's zones, and deny your own edits to owned path
 | `media-engineer` | Media pipeline: worker-media (FFmpeg, WhisperX, scene and structure analysis, embeddings, export ZIP import) and worker-render (Playwright HTML templates, HyperFrames, FFmpeg, word-level captions, voiceover and music mix). | `workers/render/templates/**`, `workers/media/**`, `workers/render/**` | sonnet |
 | `ai-agent-engineer` | worker-agent: Claude Agent SDK, the vendored Instagram skills, ContentSpec planning, query expansion, video generation and TTS adapters. | `workers/agent/**`, `packages/providers/**` | sonnet |
 | `integrations-engineer` | worker-discovery (Apify, YouTube Data API, yt-dlp, ranking), worker-publish (Instagram Graph publishing, Meta Marketing API ads), worker-analytics (insights), Meta token refresh. | `workers/discovery/**`, `workers/publish/**`, `workers/analytics/**` | sonnet |
-| `platform-engineer` | Fly.io apps and the shared worker base image (Node 22, Chrome, FFmpeg, WhisperX), pg-boss setup, scale to zero, secrets layout, environments, runbooks. | `workers/base/**`, `workers/*/Dockerfile`, `workers/*/fly.toml`, `fly/**`, `Dockerfile`, `*.Dockerfile`, `workers/**` | sonnet |
+| `platform-engineer` | Dockerfiles and the shared worker base image (Node 22, Chrome, FFmpeg, WhisperX), compose.dev.yaml on the development Docker VM, Fly.io apps, pg-boss setup, scale to zero, secrets layout, environments, runbooks. | `workers/base/**`, `workers/*/Dockerfile`, `workers/*/fly.toml`, `fly/**`, `Dockerfile`, `*.Dockerfile`, `compose*.yaml` | sonnet |
 
 
 ## Routing table
@@ -45,7 +45,7 @@ Hooks deny edits outside an agent's zones, and deny your own edits to owned path
 | worker-media (export ZIP import, FFmpeg, WhisperX, analysis) and worker-render (Playwright templates, HyperFrames, captions, audio) | `media-engineer` |
 | worker-agent (Claude Agent SDK, Instagram skills, ContentSpec), video and voice provider adapters | `ai-agent-engineer` |
 | worker-discovery (Apify, YouTube Data API, yt-dlp), worker-publish (Instagram Graph API, Meta ads), worker-analytics | `integrations-engineer` |
-| Fly.io apps, worker base image, pg-boss setup, local worker runs, secrets layout | `platform-engineer` |
+| Dockerfiles, worker base image, `compose.dev.yaml` on the development VM, Fly.io apps, pg-boss setup, secrets layout | `platform-engineer` |
 | Security review | `security-auditor` |
 | Environments, runbooks | `platform-engineer` |
 | README, guides, changelog | you |

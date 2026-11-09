@@ -31,7 +31,9 @@ You do the thinking once, so the builders (all on Sonnet) can follow your plan w
 | `workers/media`, `workers/render`, render templates | `media-engineer` |
 | `workers/agent`, provider adapters for video and voice | `ai-agent-engineer` |
 | `workers/discovery`, `workers/publish`, `workers/analytics` | `integrations-engineer` |
-| Base image, Fly.io apps, pg-boss setup, local worker runs, secrets layout | `platform-engineer` |
+| Dockerfiles, base image, `compose.dev.yaml`, Fly.io apps, pg-boss setup, secrets layout | `platform-engineer` |
+
+When a task changes a worker's system dependencies (a new binary, font, Chromium flag or Python package), plan a separate `platform-engineer` task for the image before the worker task, with the build check as its `Check:`.
 
 ## The plan (tasks.md, before the human approves)
 1. Read `spec.md`, the parts of `docs/architecture/system-spec.md` it touches, and only the code the change touches (grep first). Find the closest existing code to copy.

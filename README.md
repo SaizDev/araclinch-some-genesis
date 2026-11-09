@@ -12,7 +12,7 @@ pnpm install
 cp .env.example .env.local    # then fill the DEVELOPMENT Supabase values and the development API keys
 pnpm harness preview          # checks .env.local points to development
 pnpm dev                      # web app on http://localhost:3000
-pnpm workers:dev              # the six workers against the development project
+pnpm workers:dev              # the six workers as containers on the development VM
 ```
 
 First time: `bash scripts/harness/bootstrap.sh` installs the recommended Claude Code plugins, skills and MCP servers and scaffolds the workspace.
@@ -43,7 +43,7 @@ The team: product-manager and solution-architect (Opus), backend, frontend, medi
 | Command | Purpose |
 |---|---|
 | `pnpm dev`, `pnpm build`, `pnpm start` | Web app |
-| `pnpm workers:dev` | All workers locally against development |
+| `pnpm workers:dev`, `workers:logs`, `workers:ps`, `workers:down` | The workers as containers on the development VM (Docker context `araclinch-vm`) |
 | `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` | Quality gates |
 | `pnpm verify` | Everything before production |
 | `pnpm harness db status`, `pnpm harness db test` | Change scripts and rolled-back database tests |

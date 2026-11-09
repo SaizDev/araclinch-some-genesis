@@ -14,4 +14,5 @@ paths:
 - Temp files go to a per-job temp directory that is removed in `finally`. Large files stream to and from Supabase Storage through signed URLs.
 - Paid calls: check the monthly limit first, then record provider, units and `cost_eur` in `usage_costs` with the job ID.
 - Logs are structured (job ID, queue, step, duration) and never contain secrets, tokens or personal data.
-- Local runs: `pnpm workers:dev` starts every worker against the development Supabase project. Deployed workers run on Fly.io in `fra`; development apps end in `-dev`.
+- Development runs: `pnpm workers:dev` builds and starts every worker as a container on the development VM (Docker context `araclinch-vm`), against the development Supabase project. Deployed workers run on Fly.io in `fra`; development apps end in `-dev`.
+- Dockerfiles, `.dockerignore` and `compose.dev.yaml` belong to the platform-engineer. A worker task that needs a new system binary or Python package asks for it under Follow-ups (or the plan has a platform-engineer task for it first); worker engineers never edit images.

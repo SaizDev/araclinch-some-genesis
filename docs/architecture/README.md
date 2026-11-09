@@ -17,7 +17,7 @@ flowchart LR
   pub & ana -->|Graph API, Marketing API| meta((Meta))
 ```
 
-Workers run on Fly.io (`fra`) and never call each other. Full specification: `system-spec.md`.
+Workers run on Fly.io (`fra`) in production and in Docker on the development VM during development (ADR 0009); they never call each other. Full specification: `system-spec.md`.
 
 ## Layers
 
@@ -46,6 +46,7 @@ Workers run on Fly.io (`fra`) and never call each other. Full specification: `sy
 | [0006](adr/0006-database-tests-on-hosted-project-rolled-back.md) | Database tests on the hosted (development) project, always rolled back |
 | [0007](adr/0007-dev-and-prod-projects-change-scripts.md) | Development and production projects, one change script per spec, production schema snapshot |
 | [0008](adr/0008-workers-on-fly-with-pg-boss.md) | Workers on Fly.io, communicating only through pg-boss |
+| [0009](adr/0009-docker-vm-for-development.md) | Workers run in Docker on a development VM, reached through a Docker context |
 
 ## Cross-cutting concerns
 
