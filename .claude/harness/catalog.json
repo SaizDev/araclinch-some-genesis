@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "profiles": {
+    "budget": {
+      "description": "The only profile of this project. Opus where the reasoning is (product-manager: requirements; solution-architect: a concrete plan), Sonnet for the builders who follow it (web, database, media pipeline, AI agent, integrations, platform) and for the quick security check before your test. Compact handoffs, no GitHub Actions.",
+      "policies": {
+        "specGate": {
+          "mode": "strict",
+          "requireDesignFor": [],
+          "requirePlanFor": ["feature", "bugfix", "chore"],
+          "template": "lite"
+        },
+        "ownership": { "mode": "enforce" },
+        "delegation": {
+          "requireBrief": false,
+          "pinModels": true
+        },
+        "handoff": { "compact": true },
+        "review": {
+          "agents": ["security-auditor"],
+          "quick": true
+        },
+        "stopGate": { "typecheck": true, "lint": false, "reviewAfterCodeChange": false }
+      }
+    }
+  },
+  "modelPresets": {
+    "budget": {
+      "description": "Opus for product-manager and solution-architect, Sonnet for everyone who executes the plan.",
+      "models": { "product-manager": "opus", "solution-architect": "opus", "*": "sonnet", "technical-writer": "haiku" }
+    }
+  },
+  "modules": [
+    { "id": "agent.solution-architect", "kind": "agent", "name": "solution-architect", "profiles": ["budget"], "fallback": ["backend-engineer"], "skills": [], "description": "Architecture, technical design, ADRs, task planning." },
+    { "id": "agent.backend-engineer", "kind": "agent", "name": "backend-engineer", "required": true, "profiles": ["budget"], "skills": ["supabase"], "description": "Server code: data access layer, server actions, route handlers, auth, integrations." },
+    { "id": "agent.frontend-engineer", "kind": "agent", "name": "frontend-engineer", "required": true, "profiles": ["budget"], "skills": ["vercel-react-best-practices", "vercel-composition-patterns", "next-dev-loop"], "description": "Pages, client state, forms, data wiring, runtime verification." },
+    { "id": "agent.product-manager", "kind": "agent", "name": "product-manager", "profiles": ["budget"], "skills": [], "description": "Vision, roadmap, requirement specs and acceptance criteria.", "required": true },
+    { "id": "agent.security-auditor", "kind": "agent", "name": "security-auditor", "profiles": ["budget"], "fallback": ["code-reviewer", "solution-architect"], "skills": ["supabase"], "description": "Read-only security review: OWASP, RLS, secrets, headers, dependencies." },
+    { "id": "agent.media-engineer", "kind": "agent", "name": "media-engineer", "profiles": ["budget"], "fallback": ["backend-engineer"], "skills": [], "description": "Media pipeline: worker-media (FFmpeg, WhisperX, scene and structure analysis, embeddings, export ZIP import) and worker-render (Playwright HTML templates, HyperFrames, FFmpeg, word-level captions, voiceover and music mix)." },
+    { "id": "agent.ai-agent-engineer", "kind": "agent", "name": "ai-agent-engineer", "profiles": ["budget"], "fallback": ["backend-engineer"], "skills": [], "description": "worker-agent: Claude Agent SDK, the vendored Instagram skills, ContentSpec planning, query expansion, video generation and TTS adapters." },
+    { "id": "agent.integrations-engineer", "kind": "agent", "name": "integrations-engineer", "profiles": ["budget"], "fallback": ["backend-engineer"], "skills": [], "description": "worker-discovery (Apify, YouTube Data API, yt-dlp, ranking), worker-publish (Instagram Graph publishing, Meta Marketing API ads), worker-analytics (insights), Meta token refresh." },
+    { "id": "agent.platform-engineer", "kind": "agent", "name": "platform-engineer", "profiles": ["budget"], "fallback": ["backend-engineer"], "skills": [], "description": "Fly.io apps and the shared worker base image (Node 22, Chrome, FFmpeg, WhisperX), pg-boss setup, scale to zero, secrets layout, environments, runbooks." },
+    { "id": "check.bash-guard", "kind": "check", "profiles": ["budget"], "description": "Blocks destructive, remote-write, secret-reading and approval-bypassing shell commands; enforces ownership on shell writes." },
+    { "id": "check.content-guard", "kind": "check", "profiles": ["budget"], "description": "Blocks secrets, env files, client-side secret use and unsafe server-only boundaries in edits." },
+    { "id": "check.migration-guard", "kind": "check", "profiles": ["budget"], "description": "Database change scripts (supabase/changes): RLS in the same script, security-invoker views, safe SECURITY DEFINER, destructive-change markers." },
+    { "id": "check.ownership", "kind": "check", "profiles": ["budget"], "description": "Path ownership: the main agent must delegate; each agent writes only its zones." },
+    { "id": "check.spec-gate", "kind": "check", "profiles": ["budget"], "description": "Code edits require an active, human-approved, unchanged spec (plus design and tasks for features)." },
+    { "id": "check.chat-approval", "kind": "check", "profiles": ["budget"], "description": "Lets the human approve a spec (\"approve spec <id>\") and send it to production (\"send to production\") by typing only that in the chat. The hook records it; Claude and agents cannot trigger it." },
+    { "id": "check.delegation", "kind": "check", "profiles": ["budget"], "description": "Only the orchestrator delegates, disabled agents are refused with their fallback, and (when the profile policy requires it) briefs carry Spec, Task and Deliverables." },
+    { "id": "check.handoff", "kind": "check", "profiles": ["budget"], "description": "Team agents must finish with a structured Handoff block." },
+    { "id": "check.mcp-guard", "kind": "check", "profiles": ["budget"], "description": "Supabase MCP rules: development takes schema changes only from change scripts, production is read-only except an approved release, schema snapshots and test runs are swapped in by the hook." },
+    { "id": "check.format", "kind": "check", "profiles": ["budget"], "description": "Formats edited files with Prettier when available." },
+    { "id": "check.context", "kind": "check", "profiles": ["budget"], "description": "Injects harness state (profile, active spec, next tasks, pending database changes) at session and subagent start." },
+    { "id": "check.stop-gate", "kind": "check", "profiles": ["budget"], "description": "Before finishing: typecheck and lint pass, reviews done (per profile policy)." },
+    { "id": "skill.spec-new", "kind": "workflow-skill", "name": "spec-new", "profiles": ["budget"], "description": "Steps 1 to 3: intake with the product-manager (questions relayed to you), spec written, waits for your approval." },
+    { "id": "skill.spec-build", "kind": "workflow-skill", "name": "spec-build", "profiles": ["budget"], "required": true, "description": "Steps 4 and 5: dispatch the approved spec to the team, apply database changes to the development project, review per profile, start the local server for your test." },
+    { "id": "skill.spec-approve", "kind": "workflow-skill", "name": "spec-approve", "profiles": ["budget"] },
+    { "id": "skill.spec-ship", "kind": "workflow-skill", "name": "spec-ship", "profiles": ["budget"], "required": true, "description": "Step 6: after you type \"send to production\": database release, merge to main and push, production schema snapshot." },
+    { "id": "skill.db-change", "kind": "workflow-skill", "name": "db-change", "profiles": ["budget"] },
+    { "id": "skill.db-snapshot", "kind": "workflow-skill", "name": "db-snapshot", "profiles": ["budget"] },
+    { "id": "skill.progress", "kind": "workflow-skill", "name": "progress", "profiles": ["budget"] },
+    { "id": "skill.harness", "kind": "workflow-skill", "name": "harness", "required": true, "profiles": ["budget"] },
+    {
+      "id": "mcp.supabase",
+      "kind": "mcp",
+      "server": "supabase",
+      "profiles": ["budget"],
+      "requires": ["stack.supabase.dev.projectRef"],
+      "requiresModules": ["check.mcp-guard"],
+      "description": "Development Supabase project (read-write). Agents apply change scripts and run tests here. Schema changes only through change scripts (hook-enforced). Set with: pnpm harness supabase dev <project-ref>.",
+      "definition": {
+        "type": "http",
+        "url": "https://mcp.supabase.com/mcp?project_ref={{stack.supabase.dev.projectRef}}"
+      }
+    },
+    {
+      "id": "mcp.supabase-prod",
+      "kind": "mcp",
+      "server": "supabase-prod",
+      "profiles": ["budget"],
+      "requires": ["stack.supabase.prod.projectRef"],
+      "description": "Production Supabase project, read-only: docs, advisors, read queries and the schema snapshot. Set with: pnpm harness supabase prod <project-ref>.",
+      "definition": {
+        "type": "http",
+        "url": "https://mcp.supabase.com/mcp?project_ref={{stack.supabase.prod.projectRef}}&read_only=true"
+      }
+    },
+    {
+      "id": "mcp.supabase-release",
+      "kind": "mcp",
+      "server": "supabase-release",
+      "profiles": ["budget"],
+      "requires": ["stack.supabase.prod.projectRef"],
+      "requiresModules": ["check.mcp-guard", "check.chat-approval"],
+      "description": "Production Supabase project, read-write, used only to apply a spec's change script after the human typed \"send to production\". The mcp-guard hook allows nothing else. Not added while check.mcp-guard or check.chat-approval is off.",
+      "definition": {
+        "type": "http",
+        "url": "https://mcp.supabase.com/mcp?project_ref={{stack.supabase.prod.projectRef}}&features=database"
+      }
+    },
+    {
+      "id": "mcp.context7",
+      "kind": "mcp",
+      "server": "context7",
+      "profiles": ["budget"],
+      "description": "Version-accurate library documentation lookup. Optional CONTEXT7_API_KEY raises rate limits.",
+      "definition": {
+        "type": "http",
+        "url": "https://mcp.context7.com/mcp",
+        "headers": {
+          "Authorization": "${CONTEXT7_API_KEY:-}"
+        }
+      }
+    },
+    { "id": "plugin.typescript-lsp", "kind": "plugin", "plugin": "typescript-lsp@claude-plugins-official", "profiles": ["budget"], "prereq": "npm install -g typescript-language-server typescript", "description": "TypeScript language server: diagnostics, definitions, references." }
+  ]
+}

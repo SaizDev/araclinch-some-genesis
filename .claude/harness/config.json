@@ -1,0 +1,132 @@
+{
+  "$comment": "Harness control panel. Change it with `pnpm harness <command>` (see .claude/harness/README.md) and then run `pnpm harness render`.",
+  "profile": "budget",
+  "overrides": {
+    "enable": [],
+    "disable": []
+  },
+  "stack": {
+    "packageManager": "pnpm",
+    "pnpmVersion": "10.34.6",
+    "supabase": {
+      "prod": {
+        "projectRef": ""
+      },
+      "dev": {
+        "projectRef": ""
+      }
+    },
+    "web": {
+      "host": "",
+      "note": "Next.js hosting is not decided yet; record it here and in docs/architecture when chosen."
+    },
+    "fly": {
+      "region": "fra",
+      "org": "",
+      "apps": {
+        "worker-media": "",
+        "worker-agent": "",
+        "worker-render": "",
+        "worker-discovery": "",
+        "worker-publish": "",
+        "worker-analytics": ""
+      },
+      "devSuffix": "-dev"
+    },
+    "timezone": "Europe/Madrid"
+  },
+  "policies": {
+    "specGate": {
+      "mode": "strict",
+      "approval": "human",
+      "allowedStatuses": [
+        "approved",
+        "in-progress",
+        "implemented"
+      ],
+      "requireDesignFor": [
+        "feature"
+      ],
+      "gatedPaths": [
+        "src/**",
+        "workers/**",
+        "packages/**",
+        "supabase/changes/**",
+        "supabase/functions/**",
+        "supabase/seed.sql",
+        "supabase/seeds/**",
+        "supabase/tests/**",
+        "tests/**",
+        "e2e/**",
+        "public/**",
+        "next.config.*",
+        "pnpm-workspace.yaml"
+      ]
+    },
+    "ownership": {
+      "mode": "enforce"
+    },
+    "delegation": {
+      "requireBrief": true,
+      "briefFields": [
+        "Spec:",
+        "Task:",
+        "Deliverables:"
+      ]
+    },
+    "handoff": {
+      "required": true
+    },
+    "stopGate": {
+      "typecheck": true,
+      "lint": true,
+      "reviewAfterCodeChange": true,
+      "reviewers": [
+        "security-auditor"
+      ],
+      "securityReviewPaths": [
+        "src/server/**",
+        "src/app/api/**",
+        "src/lib/supabase/**",
+        "src/proxy.*",
+        "src/middleware.*",
+        "supabase/changes/**",
+        "supabase/functions/**",
+        "workers/publish/**",
+        "workers/discovery/**",
+        "packages/providers/**"
+      ],
+      "maxBlocksPerTurn": 2,
+      "commandTimeoutSec": 240
+    },
+    "bashGuard": {
+      "blockPushToDefaultBranch": true,
+      "defaultBranches": [
+        "main",
+        "master"
+      ]
+    },
+    "migrations": {
+      "exposedSchemas": [
+        "public"
+      ],
+      "requireRls": true
+    },
+    "format": {
+      "enabled": true,
+      "exclude": [
+        "specs/**",
+        "docs/**",
+        ".claude/**",
+        "supabase/**",
+        "migrations/**",
+        "**/*.md",
+        "pnpm-lock.yaml"
+      ]
+    },
+    "notify": {
+      "terminal": true,
+      "macos": true
+    }
+  }
+}

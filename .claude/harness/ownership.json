@@ -1,0 +1,542 @@
+{
+  "$comment": "Path ownership for this project (budget profile). First matching zone wins, so specific zones come before general ones. Owners: agent names, '@group', 'main' (the orchestrator) or '*'.",
+  "version": 1,
+  "groups": {
+    "engineers": [
+      "backend-engineer",
+      "frontend-engineer",
+      "media-engineer",
+      "ai-agent-engineer",
+      "integrations-engineer",
+      "platform-engineer"
+    ],
+    "reviewers": [
+      "security-auditor"
+    ]
+  },
+  "testFiles": {
+    "patterns": [
+      "**/*.test.{ts,tsx,js,jsx,mts,mjs}",
+      "**/*.spec.{ts,tsx,js,jsx,mts,mjs}",
+      "**/__tests__/**"
+    ],
+    "extraOwners": []
+  },
+  "zones": [
+    {
+      "id": "env-files",
+      "paths": [
+        ".env",
+        ".env.*",
+        "**/.env",
+        "**/.env.*"
+      ],
+      "owners": [],
+      "except": [
+        ".env.example",
+        "**/.env.example"
+      ],
+      "reason": "Environment files hold secrets. Only humans edit them (template: .env.example)."
+    },
+    {
+      "id": "harness-state",
+      "paths": [
+        ".claude/harness/state/**",
+        ".claude/agent-memory/**"
+      ],
+      "owners": [
+        "*"
+      ]
+    },
+    {
+      "id": "harness",
+      "paths": [
+        ".claude/**",
+        "CLAUDE.md",
+        "AGENTS.md",
+        ".mcp.json",
+        "scripts/harness/**",
+        "specs/_templates/**",
+        "specs/README.md",
+        "skills-lock.json"
+      ],
+      "owners": [
+        "main"
+      ],
+      "reason": "Harness configuration and instructions: the orchestrator edits them when the human asks; agents never do."
+    },
+    {
+      "id": "spec-product",
+      "paths": [
+        "specs/product/**"
+      ],
+      "owners": [
+        "product-manager"
+      ]
+    },
+    {
+      "id": "spec-roadmap",
+      "paths": [
+        "specs/roadmap.md"
+      ],
+      "owners": [
+        "product-manager",
+        "main"
+      ]
+    },
+    {
+      "id": "spec-requirements",
+      "paths": [
+        "specs/[0-9]*/spec.md"
+      ],
+      "owners": [
+        "product-manager"
+      ]
+    },
+    {
+      "id": "spec-plan",
+      "paths": [
+        "specs/[0-9]*/tasks.md",
+        "specs/[0-9]*/design.md",
+        "specs/[0-9]*/api.md"
+      ],
+      "owners": [
+        "solution-architect",
+        "main"
+      ]
+    },
+    {
+      "id": "spec-reviews",
+      "paths": [
+        "specs/[0-9]*/reviews/**"
+      ],
+      "owners": [
+        "security-auditor",
+        "solution-architect"
+      ]
+    },
+    {
+      "id": "spec-other",
+      "paths": [
+        "specs/[0-9]*/**",
+        "specs/**"
+      ],
+      "owners": [
+        "product-manager",
+        "solution-architect"
+      ]
+    },
+    {
+      "id": "db-changes",
+      "paths": [
+        "supabase/changes/**"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "db-schema-snapshot",
+      "paths": [
+        "migrations/**"
+      ],
+      "owners": [
+        "backend-engineer",
+        "main"
+      ]
+    },
+    {
+      "id": "db-tests",
+      "paths": [
+        "supabase/tests/**"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "db-seed",
+      "paths": [
+        "supabase/seed.sql",
+        "supabase/seeds/**"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "edge-functions",
+      "paths": [
+        "supabase/functions/**"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "supabase-other",
+      "paths": [
+        "supabase/**"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "db-types",
+      "paths": [
+        "src/types/database.types.ts",
+        "packages/contracts/src/database.types.ts"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "worker-deploy",
+      "paths": [
+        "workers/base/**",
+        "workers/*/Dockerfile",
+        "workers/*/fly.toml",
+        "fly/**",
+        "Dockerfile",
+        "*.Dockerfile"
+      ],
+      "owners": [
+        "platform-engineer"
+      ],
+      "reason": "Fly.io apps and the shared worker base image belong to the platform-engineer."
+    },
+    {
+      "id": "render-templates",
+      "paths": [
+        "workers/render/templates/**"
+      ],
+      "owners": [
+        "media-engineer",
+        "frontend-engineer"
+      ]
+    },
+    {
+      "id": "worker-media",
+      "paths": [
+        "workers/media/**",
+        "workers/render/**"
+      ],
+      "owners": [
+        "media-engineer"
+      ]
+    },
+    {
+      "id": "worker-agent",
+      "paths": [
+        "workers/agent/**"
+      ],
+      "owners": [
+        "ai-agent-engineer"
+      ]
+    },
+    {
+      "id": "worker-integrations",
+      "paths": [
+        "workers/discovery/**",
+        "workers/publish/**",
+        "workers/analytics/**"
+      ],
+      "owners": [
+        "integrations-engineer"
+      ]
+    },
+    {
+      "id": "workers-other",
+      "paths": [
+        "workers/**"
+      ],
+      "owners": [
+        "platform-engineer"
+      ]
+    },
+    {
+      "id": "pkg-contracts",
+      "paths": [
+        "packages/contracts/**"
+      ],
+      "owners": [
+        "solution-architect",
+        "backend-engineer",
+        "media-engineer",
+        "ai-agent-engineer",
+        "integrations-engineer"
+      ]
+    },
+    {
+      "id": "pkg-queue",
+      "paths": [
+        "packages/queue/**"
+      ],
+      "owners": [
+        "platform-engineer",
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "pkg-providers",
+      "paths": [
+        "packages/providers/**"
+      ],
+      "owners": [
+        "ai-agent-engineer",
+        "integrations-engineer",
+        "media-engineer"
+      ]
+    },
+    {
+      "id": "pkg-other",
+      "paths": [
+        "packages/**"
+      ],
+      "owners": [
+        "backend-engineer",
+        "platform-engineer"
+      ]
+    },
+    {
+      "id": "server",
+      "paths": [
+        "src/server/**"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "route-handlers",
+      "paths": [
+        "src/app/api/**",
+        "src/app/**/route.{ts,js}",
+        "src/app/**/actions.{ts,js}"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "supabase-clients",
+      "paths": [
+        "src/lib/supabase/**"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "shared-validation",
+      "paths": [
+        "src/lib/validation/**"
+      ],
+      "owners": [
+        "backend-engineer",
+        "frontend-engineer"
+      ]
+    },
+    {
+      "id": "edge-proxy",
+      "paths": [
+        "src/proxy.{ts,js}",
+        "src/middleware.{ts,js}"
+      ],
+      "owners": [
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "runtime-config",
+      "paths": [
+        "src/instrumentation*.{ts,js}",
+        "src/env.{ts,mjs,js}"
+      ],
+      "owners": [
+        "backend-engineer",
+        "platform-engineer"
+      ]
+    },
+    {
+      "id": "app-routes",
+      "paths": [
+        "src/app/**",
+        "src/components/**",
+        "src/hooks/**",
+        "src/stores/**",
+        "src/styles/**"
+      ],
+      "owners": [
+        "frontend-engineer"
+      ]
+    },
+    {
+      "id": "shared-types",
+      "paths": [
+        "src/types/**",
+        "src/lib/**"
+      ],
+      "owners": [
+        "backend-engineer",
+        "frontend-engineer"
+      ]
+    },
+    {
+      "id": "src-other",
+      "paths": [
+        "src/**"
+      ],
+      "owners": [
+        "backend-engineer",
+        "frontend-engineer"
+      ]
+    },
+    {
+      "id": "static-assets",
+      "paths": [
+        "public/**",
+        "components.json"
+      ],
+      "owners": [
+        "frontend-engineer"
+      ]
+    },
+    {
+      "id": "tests",
+      "paths": [
+        "tests/**",
+        "e2e/**",
+        "playwright.config.*",
+        "vitest.config.*",
+        "vitest.setup.*"
+      ],
+      "owners": [
+        "frontend-engineer",
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "ci",
+      "paths": [
+        ".github/**"
+      ],
+      "owners": [
+        "platform-engineer"
+      ]
+    },
+    {
+      "id": "platform",
+      "paths": [
+        ".env.example",
+        ".nvmrc",
+        ".npmrc",
+        "pnpm-workspace.yaml",
+        "docker-compose*.yml",
+        "vercel.json",
+        "vercel.ts"
+      ],
+      "owners": [
+        "platform-engineer",
+        "backend-engineer"
+      ]
+    },
+    {
+      "id": "scripts",
+      "paths": [
+        "scripts/**"
+      ],
+      "owners": [
+        "platform-engineer"
+      ]
+    },
+    {
+      "id": "build-config",
+      "paths": [
+        "next.config.*",
+        "tsconfig*.json",
+        "eslint.config.*",
+        ".prettierrc*",
+        ".prettierignore",
+        "postcss.config.*",
+        "turbo.json"
+      ],
+      "owners": [
+        "solution-architect",
+        "frontend-engineer",
+        "backend-engineer",
+        "platform-engineer"
+      ]
+    },
+    {
+      "id": "dependencies",
+      "paths": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "**/package.json"
+      ],
+      "owners": [
+        "@engineers",
+        "solution-architect"
+      ]
+    },
+    {
+      "id": "docs-architecture",
+      "paths": [
+        "docs/architecture/**"
+      ],
+      "owners": [
+        "solution-architect",
+        "main"
+      ]
+    },
+    {
+      "id": "docs-security",
+      "paths": [
+        "docs/security/**"
+      ],
+      "owners": [
+        "security-auditor"
+      ]
+    },
+    {
+      "id": "docs-runbooks",
+      "paths": [
+        "docs/runbooks/**"
+      ],
+      "owners": [
+        "platform-engineer"
+      ]
+    },
+    {
+      "id": "docs",
+      "paths": [
+        "docs/**"
+      ],
+      "owners": [
+        "solution-architect",
+        "main"
+      ]
+    },
+    {
+      "id": "project-docs",
+      "paths": [
+        "README.md",
+        "CHANGELOG.md",
+        "CONTRIBUTING.md",
+        "THIRD_PARTY_NOTICES.md"
+      ],
+      "owners": [
+        "main",
+        "solution-architect"
+      ]
+    }
+  ],
+  "default": {
+    "owners": [
+      "*"
+    ]
+  }
+}

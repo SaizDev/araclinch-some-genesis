@@ -1,0 +1,11 @@
+pnpm-lock.yaml
+.next/
+out/
+coverage/
+playwright-report/
+db/
+supabase/
+specs/
+docs/
+.claude/
+src/types/database.types.ts

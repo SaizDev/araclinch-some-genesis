@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "1",
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(pnpm run *)",
+      "Bash(pnpm dev*)",
+      "Bash(pnpm build*)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm typecheck*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm verify*)",
+      "Bash(pnpm exec prettier *)",
+      "Bash(pnpm exec eslint *)",
+      "Bash(pnpm exec tsc *)",
+      "Bash(pnpm exec vitest *)",
+      "Bash(pnpm exec playwright *)",
+      "Bash(pnpm supabase gen types *)",
+      "Bash(pnpm supabase db lint*)",
+      "Bash(pnpm supabase db advisors*)",
+      "Bash(pnpm dlx shadcn@latest add *)",
+      "Bash(node .claude/harness/harness.mjs status*)",
+      "Bash(node .claude/harness/harness.mjs doctor*)",
+      "Bash(node .claude/harness/harness.mjs modules*)",
+      "Bash(node .claude/harness/harness.mjs spec list*)",
+      "Bash(node .claude/harness/harness.mjs spec status*)",
+      "Bash(node .claude/harness/harness.mjs spec new *)",
+      "Bash(node .claude/harness/harness.mjs spec scaffold *)",
+      "Bash(node .claude/harness/harness.mjs spec set-status *)",
+      "Bash(node .claude/harness/harness.mjs spec activate *)",
+      "Bash(node .claude/harness/harness.mjs ownership *)",
+      "Bash(node .claude/harness/harness.mjs db *)",
+      "Bash(node .claude/harness/harness.mjs preview*)",
+      "Bash(pnpm harness db *)",
+      "Bash(pnpm harness preview*)",
+      "Bash(pnpm harness status*)",
+      "Bash(pnpm harness doctor*)",
+      "Bash(pnpm harness spec *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git switch *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git fetch*)",
+      "Bash(git pull*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr diff*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "mcp__context7__*",
+      "mcp__next-devtools__*",
+      "mcp__supabase__search_docs",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__generate_typescript_types",
+      "mcp__supabase-prod__search_docs",
+      "mcp__supabase-prod__list_tables",
+      "mcp__supabase-prod__get_advisors",
+      "mcp__supabase-prod__execute_sql",
+      "mcp__supabase-release__execute_sql",
+      "WebFetch(domain:nextjs.org)",
+      "WebFetch(domain:react.dev)",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:tailwindcss.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:zod.dev)",
+      "WebFetch(domain:playwright.dev)",
+      "WebFetch(domain:vitest.dev)",
+      "WebFetch(domain:developer.mozilla.org)",
+      "WebFetch(domain:owasp.org)",
+      "WebFetch(domain:cheatsheetseries.owasp.org)",
+      "WebFetch(domain:www.postgresql.org)",
+      "WebFetch(domain:github.com)",
+      "Bash(pnpm workers:*)",
+      "Bash(pnpm --filter * test*)",
+      "Bash(pnpm --filter * typecheck*)",
+      "Bash(fly status*)",
+      "Bash(fly logs*)",
+      "Bash(fly apps list*)",
+      "Bash(fly machine list*)",
+      "Bash(fly releases*)",
+      "Bash(ffprobe *)",
+      "Bash(ffmpeg -hide_banner -version*)",
+      "WebFetch(domain:developers.facebook.com)",
+      "WebFetch(domain:docs.apify.com)",
+      "WebFetch(domain:developers.google.com)",
+      "WebFetch(domain:fly.io)",
+      "WebFetch(domain:elevenlabs.io)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:ffmpeg.org)"
+    ],
+    "ask": [
+      "Bash(git reset*)",
+      "Bash(git rebase*)",
+      "Bash(pnpm supabase link*)"
+    ],
+    "deny": [
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(!**/.env.example)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Edit(!**/.env.example)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/.supabase/**)",
+      "Read(~/.config/gh/**)",
+      "Read(~/.netrc)",
+      "Read(~/.npmrc)",
+      "Bash(pnpm supabase db push*)",
+      "Bash(supabase db push*)",
+      "Bash(npx supabase db push*)",
+      "Bash(pnpm supabase functions deploy*)",
+      "Bash(pnpm supabase secrets *)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(pnpm spec:approve*)",
+      "Bash(pnpm run spec:approve*)",
+      "Bash(node .claude/harness/harness.mjs spec approve*)",
+      "Bash(pnpm harness spec approve*)",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__deploy_edge_function",
+      "mcp__supabase__create_project",
+      "mcp__supabase__pause_project",
+      "mcp__supabase__restore_project",
+      "mcp__supabase__create_branch",
+      "mcp__supabase__delete_branch",
+      "mcp__supabase__merge_branch",
+      "mcp__supabase__reset_branch",
+      "mcp__supabase__rebase_branch",
+      "mcp__plugin_supabase_supabase__apply_migration",
+      "mcp__supabase-prod__apply_migration",
+      "mcp__supabase-release__apply_migration",
+      "mcp__supabase-prod__deploy_edge_function",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
+      "Bash(pnpm supabase start*)",
+      "Bash(npx supabase start*)",
+      "Bash(supabase start*)",
+      "Bash(fly auth token*)",
+      "Bash(flyctl auth token*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness-hook.mjs\" SessionStart",
+            "timeout": 20
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness-hook.mjs\" UserPromptSubmit",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit|Agent|Task|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness-hook.mjs\" PreToolUse",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|mcp__supabase-prod__execute_sql",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness-hook.mjs\" PostToolUse",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness-hook.mjs\" SubagentStart",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness-hook.mjs\" SubagentStop",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness-hook.mjs\" Stop",
+            "timeout": 600
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|idle_prompt|agent_needs_input|elicitation_dialog",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/harness-hook.mjs\" Notification",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Setup": [
+      {
+        "matcher": "init|maintenance",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/harness/bootstrap.sh\" --only-integrations --non-interactive",
+            "timeout": 900
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/statusline.mjs\""
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true
+  }
+}
