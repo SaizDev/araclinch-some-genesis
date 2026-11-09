@@ -60,7 +60,7 @@ On the VM (Debian, once):
 3. Outbound internet access (Supabase, Anthropic, Meta and the other providers).
 
 On the Mac (once):
-1. The Docker CLI and Compose without Docker Desktop: `brew install docker docker-compose docker-buildx` and follow brew's note to register the two plugins.
+1. The Docker client only: `brew install docker docker-compose docker-buildx`, then follow brew's note to register the two plugins. This installs command-line programs, not Docker Desktop: no daemon, no Linux VM and no containers run on the Mac. Builds stream the code to the VM over SSH, and everything runs there.
 2. An SSH host entry in `~/.ssh/config` (for example `Host araclinch-vm`, with `HostName`, `User` and `IdentityFile`). Load the key in the macOS keychain (`UseKeychain yes`, `AddKeysToAgent yes`) so Docker never waits for a passphrase.
 3. `docker context create araclinch-vm --docker "host=ssh://araclinch-vm"`, then check it with `docker --context araclinch-vm ps`. The project selects this context for Claude (`DOCKER_CONTEXT` in `.claude/settings.json`); if you use another name, change it there and in `stack.docker.context`.
 4. `.env.local` stays on the Mac. `compose.dev.yaml` sends its values to the containers when they start, so they live in the container settings on the VM: keep the VM to yourself.
